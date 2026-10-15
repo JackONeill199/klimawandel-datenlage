@@ -1004,12 +1004,30 @@ function renderSourcesTable(ind) {
 function updateStatus(ind) {
   const ok = (ind.sources ?? []).filter((entry) => entry.status === "ok").length;
   const total = (ind.sources ?? []).length;
-  const generated = new Date(ind.generatedAt);
-  const stamp = generated.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" });
+  const stamp = new Date(ind.generatedAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" });
+  const periods =
+    `Bezugsperioden: Temperatur ${ind.references?.gistempBaseline ?? "1951–1980"}, ` +
+    `Meereis ${ind.references?.seaIceClimatology ?? "1981–2010"}.`;
+
+  if (state.apiMode === "static") {
+    // Ohne Server ist der Datenstand der Zeitpunkt des letzten Builds, nicht der des Aufrufs.
+    $("update-status-text").textContent = `Datenstand ${stamp} (Momentaufnahme des letzten Builds) · ${ok} von ${total} Quellen verfügbar`;
+    $("footer-meta").textContent = `Momentaufnahme, erzeugt am ${stamp}; erneuert wird sie vom Build, nicht vom Seitenaufruf. ${periods}`;
+    const note = $("mode-note");
+    if (note) {
+      note.textContent =
+        "Diese Fassung läuft ohne eigenen Server: die globalen Messreihen stammen aus einer Momentaufnahme, die der Build " +
+        "täglich aus den Originaldateien erneuert. Die Ortsauswertung rechnet Ihr Browser selbst und fragt dafür Open-Meteo " +
+        "direkt – dabei werden die gesuchten Koordinaten an Open-Meteo übermittelt. Es werden weiterhin keine Skripte " +
+        "Dritter geladen, keine Cookies gesetzt und kein Tracking betrieben.";
+      note.hidden = false;
+    }
+    return;
+  }
+
   $("update-status-text").textContent = `Datenstand ${stamp} · ${ok} von ${total} Quellen verfügbar`;
   $("footer-meta").textContent =
-    `Auswertung erzeugt am ${stamp}. Zwischenspeicher: ${ind.cached?.hit ? "Treffer" : "neu berechnet"}. ` +
-    `Bezugsperioden: Temperatur ${ind.references?.gistempBaseline ?? "1951–1980"}, Meereis ${ind.references?.seaIceClimatology ?? "1981–2010"}.`;
+    `Auswertung erzeugt am ${stamp}. Zwischenspeicher: ${ind.cached?.hit ? "Treffer" : "neu berechnet"}. ${periods}`;
 }
 
 function fillSections(ind) {
@@ -1023,11 +1041,88 @@ function fillSections(ind) {
   sourceNote("sealevel-source", findSource(ind, "seaLevel"));
 }
 
+/* ------------------------------------------------------------------ */
+/* Datenzugriff: eigener Worker oder statische Fassung                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Die Seite läuft in zwei Betriebsarten. Mit Worker stammen alle Daten aus der
+ * eigenen API unter /api/*. Auf GitHub Pages gibt es keinen Server: dort kommen
+ * die globalen Reihen aus der Momentaufnahme des letzten Builds, und die
+ * Ortsauswertung läuft im Browser gegen Open-Meteo (dort ist CORS freigegeben).
+ * Alle Pfade sind relativ, damit die Seite auch als Projektseite unter /repo/ läuft.
+ */
+let modePromise = null;
+let clientPromise = null;
+
+function apiMode() {
+  if (!modePromise) {
+    modePromise = (async () => {
+      try {
+        // Das Browser-Bündel entsteht nur im statischen Build. Sein Vorhandensein
+        // verrät die Betriebsart, ohne dass Besucher im Protokoll einen 404 sehen.
+        const response = await fetch("assets/local-client.js", { method: "HEAD" });
+        return response.ok ? "static" : "worker";
+      } catch {
+        return "static";
+      }
+    })();
+  }
+  return modePromise;
+}
+
+/** Das Bündel mit der Ortsauswertung wird nur geladen, wenn es gebraucht wird. */
+async function localClient() {
+  if (!clientPromise) clientPromise = import("./local-client.js");
+  try {
+    return await clientPromise;
+  } catch (error) {
+    clientPromise = null;
+    throw new Error(`Ortsauswertung im Browser nicht verfügbar (${error.message})`);
+  }
+}
+
+async function fetchJsonUrl(url, label) {
+  try {
+    const response = await fetch(url, { headers: { accept: "application/json" } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    throw new Error(`${label}: ${error.message}`);
+  }
+}
+
+const coords = (lat, lon) => `lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
+
+async function loadIndicatorsPayload() {
+  if ((await apiMode()) === "worker") return fetchJsonUrl("api/indicators", "API");
+  return fetchJsonUrl("data/indicators.json", "Momentaufnahme");
+}
+
+async function loadLocalCurrentPayload(lat, lon) {
+  if ((await apiMode()) === "worker") return fetchJsonUrl(`api/local/current?${coords(lat, lon)}`, "Wetterdaten");
+  return (await localClient()).loadLocalCurrent(lat, lon);
+}
+
+async function loadLocalClimatePayload(lat, lon) {
+  if ((await apiMode()) === "worker") return fetchJsonUrl(`api/local/climate?${coords(lat, lon)}`, "Klimaauswertung");
+  return (await localClient()).loadLocalClimate(lat, lon);
+}
+
+async function loadProjectionPayload(lat, lon) {
+  if ((await apiMode()) === "worker") return fetchJsonUrl(`api/local/projection?${coords(lat, lon)}`, "Projektion");
+  return (await localClient()).loadLocalProjection(lat, lon);
+}
+
+async function searchPlacesPayload(query) {
+  if ((await apiMode()) === "worker") return fetchJsonUrl(`api/geocode?q=${encodeURIComponent(query)}`, "Ortssuche");
+  return (await localClient()).searchPlaces(query);
+}
+
 async function loadIndicators() {
   try {
-    const response = await fetch("/api/indicators", { headers: { accept: "application/json" } });
-    if (!response.ok) throw new Error(`API antwortete mit ${response.status}`);
-    const ind = await response.json();
+    state.apiMode = await apiMode();
+    const ind = await loadIndicatorsPayload();
     state.indicators = ind;
     renderKpis(ind);
     renderCo2Chart(ind);
@@ -1075,7 +1170,6 @@ function setLocalStatus(message, variant) {
 async function loadLocal(lat, lon, label) {
   state.location = { lat, lon, label };
   setLocalStatus(`Auswertung für ${label} wird berechnet – das kann beim ersten Aufruf einige Sekunden dauern.`);
-  const query = `lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
   const url = new URL(window.location.href);
   url.searchParams.set("lat", lat.toFixed(4));
   url.searchParams.set("lon", lon.toFixed(4));
@@ -1083,16 +1177,7 @@ async function loadLocal(lat, lon, label) {
   window.history.replaceState({}, "", url);
 
   try {
-    const [current, climate] = await Promise.all([
-      fetch(`/api/local/current?${query}`).then((response) => {
-        if (!response.ok) throw new Error(`Wetterdaten: HTTP ${response.status}`);
-        return response.json();
-      }),
-      fetch(`/api/local/climate?${query}`).then((response) => {
-        if (!response.ok) throw new Error(`Klimaauswertung: HTTP ${response.status}`);
-        return response.json();
-      }),
-    ]);
+    const [current, climate] = await Promise.all([loadLocalCurrentPayload(lat, lon), loadLocalClimatePayload(lat, lon)]);
     renderLocalKpis(current, climate, label);
     renderLocalStripes(climate);
     renderLocalAnnual(climate);
@@ -1412,9 +1497,7 @@ async function requestProjection(lat, lon, climate, key) {
   host.appendChild(el("p", "loading", "Modellläufe werden abgerufen – das kann einige Sekunden dauern …"));
 
   try {
-    const response = await fetch(`/api/local/projection?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const projection = await response.json();
+    const projection = await loadProjectionPayload(lat, lon);
     if (projectionState.key !== key) return;
     if (projection.error || !projection.ensemble?.length) {
       throw new Error(projection.error ?? "keine Modelldaten erhalten");
@@ -1565,8 +1648,7 @@ function setupLocalForm() {
     }
     timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
+        const data = await searchPlacesPayload(query);
         showSuggestions(data.results ?? []);
       } catch {
         closeSuggestions();
@@ -1580,8 +1662,7 @@ function setupLocalForm() {
     if (query.length < 2) return;
     setLocalStatus("Ort wird gesucht …");
     try {
-      const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-      const data = await response.json();
+      const data = await searchPlacesPayload(query);
       const first = data.results?.[0];
       if (!first) {
         setLocalStatus("Kein Ort gefunden. Bitte Schreibweise prüfen oder Koordinaten direkt verwenden.", "error");

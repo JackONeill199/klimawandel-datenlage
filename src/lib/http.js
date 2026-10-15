@@ -22,10 +22,12 @@ export async function fetchText(url, { timeoutMs = DEFAULT_TIMEOUT, headers = {}
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetch(url, {
-        headers: { "user-agent": "klimawandel-datenlage/0.1 (Informationsseite; Datenabruf)", ...headers },
-        signal: controller.signal,
-      });
+      // Browser erlauben das Setzen von User-Agent nicht; dort entfällt der Kopf.
+      const requestHeaders = { ...headers };
+      if (typeof window === "undefined") {
+        requestHeaders["user-agent"] = "klimawandel-datenlage/0.1 (Informationsseite; Datenabruf)";
+      }
+      const response = await fetch(url, { headers: requestHeaders, signal: controller.signal });
       if (response.ok) return await response.text();
       if (retries > 0 && attempt < retries && RETRYABLE.has(response.status)) {
         await sleep(retryDelayMs * (attempt + 1));

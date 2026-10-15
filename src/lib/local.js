@@ -1,7 +1,8 @@
 /**
  * Ortsbezogene Auswertung mit Open-Meteo (Wetter, Luftqualität, ERA5-Reanalyse,
- * CMIP6/HighResMIP-Projektionen). Alle Auswertungen sind serverseitig, damit die
- * Seite keine Drittanbieter-Skripte laden muss.
+ * CMIP6/HighResMIP-Projektionen). Derselbe Code läuft im Worker (serverseitig) und
+ * gebündelt im Browser (GitHub Pages, dort fragt der Browser Open-Meteo direkt);
+ * Skripte Dritter werden in keinem Fall geladen, nur Daten abgerufen.
  */
 import { fetchJson } from "./http.js";
 import { annualMeansFromSeries, decimalYear, linearTrend, mean, round } from "./stats.js";

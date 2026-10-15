@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "build": "esbuild src/worker.js --bundle --format=esm --platform=neutral --target=es2022 --outfile=dist/worker.js",
+    "build:site": "node scripts/build-site.mjs",
+    "snapshot": "node scripts/snapshot.mjs",
+    "serve:site": "node scripts/serve-site.mjs",
     "test": "node --test test/parse.test.js test/stats.test.js"
   },
   "engines": {

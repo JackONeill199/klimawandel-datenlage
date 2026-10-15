@@ -1,9 +1,17 @@
 # Klimawandel · Datenlage
 
 Interaktive Informationsseite über den anthropogenen Klimawandel. Alle Zeitreihen
-stammen aus öffentlichen Messnetzen und werden bei jedem Aufruf serverseitig aus
-den Originaldateien der Betreiber neu ausgewertet – es gibt keine kopierten
-Kennzahlen in der Oberfläche.
+stammen aus öffentlichen Messnetzen und werden aus den Originaldateien der
+Betreiber ausgewertet – es gibt keine kopierten Kennzahlen in der Oberfläche.
+
+Die Seite läuft in zwei Betriebsarten aus derselben Codebasis:
+
+- **Mit Worker** (Cloudflare, `wrangler dev` oder `wrangler deploy`): alle Daten
+  werden serverseitig geholt, geparst und im Edge-Cache gehalten.
+- **Statisch auf GitHub Pages**: der Build holt die globalen Reihen einmal und legt
+  sie als Momentaufnahme neben die Seite; die Ortsauswertung läuft gebündelt im
+  Browser gegen Open-Meteo. Warum das nötig ist: ein Teil der Messnetze gibt CORS
+  nicht frei, und GitHub Pages führt keinen Code aus.
 
 ## Inhalt
 
@@ -27,18 +35,24 @@ in `public/assets/content.js` mit Quelle, Bezugszeitraum und Stand hinterlegt.
 ```
 public/                 statische Seite (HTML, CSS, JS, eigene SVG-Diagramme)
 src/worker.js           Worker: API-Routen und Auslieferung der Assets
+src/browser.js          Einstiegspunkt des Browser-Bündels (Pages-Betrieb)
 src/lib/http.js         Abruf mit Timeout, Wiederholung und Edge-Cache
 src/lib/parse.js        Parser der Rohformate (NOAA, NASA, NSIDC, CU)
 src/lib/stats.js        Trend, Mittel, Aggregation (rein, ohne Abhängigkeiten)
 src/lib/sources.js      globale Indikatoren zusammenführen
 src/lib/local.js        Ortsauswertung (Open-Meteo)
+scripts/                Snapshot, Site-Build und Prüfserver für Pages
 test/                   Unit-Tests mit dem Node-Testrunner
+.github/workflows/      Build und Veröffentlichung der statischen Fassung
 ```
 
 Kein Framework, keine Laufzeitabhängigkeit: die Diagramme sind ein eigenes
 SVG-Modul (`public/assets/charts.js`) mit Hover-Ablesung, Legende zum
-Umschalten und wählbaren Zeiträumen. Dadurch lädt die Seite kein Skript eines
-Dritten; die Content-Security-Policy erlaubt ausschließlich eigene Quellen.
+Umschalten und wählbaren Zeiträumen. Die Seite lädt kein Skript eines Dritten.
+Im Worker-Betrieb erlaubt die Content-Security-Policy ausschließlich eigene
+Quellen (`connect-src 'self'`); im Pages-Betrieb fragt der Browser für die
+Ortsauswertung ausschließlich Open-Meteo direkt – mit den Koordinaten, nach denen
+gesucht wurde, und nichts darüber hinaus.
 
 ### API
 
@@ -60,9 +74,12 @@ Quellentabelle aus.
 
 ```bash
 npm install
-npm run dev      # wrangler dev, Standardport 8787
-npm test         # Unit-Tests für Parser und Statistik
-npm run build    # gebündelter Worker nach dist/worker.js
+npm run dev        # wrangler dev, Standardport 8787
+npm test           # Unit-Tests für Parser und Statistik
+npm run build      # gebündelter Worker nach dist/worker.js
+npm run snapshot   # Momentaufnahme der globalen Reihen nach public/data/
+npm run build:site # statische Fassung für Pages nach dist-site/
+npm run serve:site -- 8803   # statische Fassung lokal prüfen
 ```
 
 Hinweise zum lokalen Betrieb:
@@ -79,6 +96,36 @@ Hinweise zum lokalen Betrieb:
   Wiederholungen und Wartezeiten von 6 und 12 Sekunden abgerufen und bei
   Fehlschlag nur 5 Minuten zwischengespeichert. Schlägt sie fehl, bleiben die
   übrigen Ortsauswertungen nutzbar, und die Karte bietet einen neuen Versuch an.
+
+## Veröffentlichung auf GitHub Pages
+
+Die Seite ist unter <https://jackoneill199.github.io/klimawandel-datenlage/>
+veröffentlicht (ein Projekt-Pages, deshalb liegen alle Pfade relativ).
+
+`.github/workflows/pages.yml` läuft bei jedem Push auf `main`, einmal täglich
+(05:23 UTC) und auf Zuruf. Der Lauf testet, baut `dist-site/` und lädt das
+Verzeichnis als Pages-Artefakt hoch.
+
+Der Build setzt sich aus drei Teilen zusammen:
+
+1. Kopie von `public/`
+2. `assets/local-client.js` – die Ortsauswertung aus `src/lib/local.js` als
+   Browser-Bündel (rund 17 kB), erzeugt mit esbuild
+3. `data/indicators.json` – Momentaufnahme der sieben globalen Reihen (rund 160 kB),
+   mit demselben Code erzeugt, den auch der Worker benutzt
+
+Wichtig für die Einordnung der Daten:
+
+- Die globalen Reihen sind **so frisch wie der letzte Build**, nicht so frisch wie
+  der Seitenaufruf. Die Seite schreibt das in den Kopf („Momentaufnahme des letzten
+  Builds“) und in die Fußzeile.
+- Die Ortsauswertung ist weiterhin live: sie fragt Open-Meteo bei jedem Aufruf.
+- Die Momentaufnahme steht bewusst nicht im Repository – sie ist Ausgabe, nicht
+  Quelle. Bricht ein Build ab, bleibt die zuletzt erfolgreich veröffentlichte
+  Fassung online, statt durch eine leere ersetzt zu werden.
+- Gibt der Anbieter für die Momentaufnahme manche Quellen nicht heraus, wird die
+  Fassung trotzdem veröffentlicht und die Quellentabelle kennzeichnet die Lücke.
+  Nur wenn **keine** Quelle erreichbar ist, bricht der Build ab.
 
 ## Datenverarbeitung im Detail
 

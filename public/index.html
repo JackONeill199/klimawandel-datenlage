@@ -610,7 +610,8 @@
             <p class="section__lead">
               Jede Kurve auf dieser Seite stammt aus einer Originaldatei eines Messnetzes. Die Tabelle zeigt für jede
               Quelle den Status des letzten Abrufs, die Anzahl verarbeiteter Messwerte und den jüngsten Messwert. Die
-              Rohdaten werden im Zwischenspeicher des Servers gehalten und bei jedem Ablauf neu ausgewertet.
+              Rohdaten werden nicht als feste Zahlen übernommen, sondern bei jeder Auswertung neu aus den
+              Originaldateien gelesen.
             </p>
           </header>
 
@@ -639,11 +640,12 @@
           <h3 class="section__sub">Verarbeitung</h3>
           <div class="prose">
             <p>
-              Alle Werte werden serverseitig aus den Rohdateien geparst und aggregiert. Es werden keine
-              Analyse-Skripte Dritter geladen, es werden keine Cookies gesetzt und es findet kein Tracking statt. Bei
-              fehlerhaften oder nicht erreichbaren Quellen zeigt die Seite den Fehler an, statt Ersatzwerte
-              einzusetzen.
+              Alle Werte werden aus den Rohdateien der Messnetze geparst und aggregiert; die Auswertung ist im
+              Quelltext nachvollziehbar. Es werden keine Analyse-Skripte Dritter geladen, es werden keine Cookies
+              gesetzt und es findet kein Tracking statt. Bei fehlerhaften oder nicht erreichbaren Quellen zeigt die
+              Seite den Fehler an, statt Ersatzwerte einzusetzen.
             </p>
+            <p id="mode-note" hidden></p>
           </div>
         </div>
       </section>
