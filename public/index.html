@@ -468,11 +468,29 @@
                   <h3 id="local-extremes-title">Heiße Tage und Frosttage</h3>
                   <p class="chart-card__sub">
                     Tage mit Höchsttemperatur über 30&nbsp;°C und Tage mit Tiefsttemperatur unter 0&nbsp;°C, jeweils
-                    als 10-Jahres-Mittel. Nur vollständige Jahre.
+                    als 10-Jahres-Mittel. Nur vollständige Jahre. Beide Felder haben eine eigene, bei null
+                    beginnende Achse, weil Frosttage um ein Vielfaches häufiger sind als heiße Tage.
                   </p>
                 </div>
               </figcaption>
-              <div class="chart-host" id="local-chart-extremes"></div>
+              <div class="chart-split" id="local-extremes-hosts">
+                <div class="chart-panel">
+                  <p class="chart-panel__head">
+                    <span class="chart-panel__mark chart-panel__mark--hot" aria-hidden="true"></span>
+                    <span class="chart-panel__label">Tage &ge; 30&nbsp;°C</span>
+                    <span class="chart-panel__delta" id="local-extremes-hot-delta"></span>
+                  </p>
+                  <div class="chart-host" id="local-chart-extremes-hot"></div>
+                </div>
+                <div class="chart-panel">
+                  <p class="chart-panel__head">
+                    <span class="chart-panel__mark chart-panel__mark--cold" aria-hidden="true"></span>
+                    <span class="chart-panel__label">Frosttage &lt; 0&nbsp;°C</span>
+                    <span class="chart-panel__delta" id="local-extremes-frost-delta"></span>
+                  </p>
+                  <div class="chart-host" id="local-chart-extremes-frost"></div>
+                </div>
+              </div>
               <p class="chart-card__foot"><span class="source-note" id="local-extremes-source"></span></p>
             </figure>
 

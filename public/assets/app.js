@@ -2,7 +2,7 @@
  * Seitenlogik: lädt die Live-Daten der eigenen API, füllt Kennzahlen und
  * Diagramme und steuert die Interaktion (Zeiträume, Legenden, Ortsauswahl).
  */
-import { PALETTE, divergingColor, formatNumber, plot, stripes } from "./charts.js";
+import { PALETTE, divergingColor, formatNumber, niceTicks, plot, stripes } from "./charts.js";
 import {
   CARBON_BUDGET,
   EMISSIONS,
@@ -1244,56 +1244,114 @@ function renderLocalAnnual(climate) {
   );
 }
 
+/**
+ * Ganzzahlige Werteachse, deren oberste Gitterlinie über dem größten Wert liegt.
+ * Ohne das schweben die obersten Punkte über der letzten Linie, ohne Bezugswert.
+ */
+function integerAxis(values) {
+  const finite = values.filter((value) => Number.isFinite(value));
+  const maxValue = finite.length ? Math.max(...finite) : 0;
+  // Sechs Prozent Luft: die obersten Punkte sollen die Feldkante nicht berühren.
+  const top = Math.max(1, maxValue * 1.06);
+  const candidates = niceTicks(0, top, 5);
+  const step = candidates.length > 1 ? Math.max(1, Math.round(candidates[1] - candidates[0])) : 1;
+  const ticks = [];
+  for (let value = 0; value <= top + 1e-9; value += step) ticks.push(value);
+  return { domain: [0, top], ticks };
+}
+
 function renderLocalExtremes(climate) {
-  const host = chartHost("local-chart-extremes");
+  // Der Container bleibt bestehen: er hält die beiden Felder, die beim Fehlerfall nur
+  // ausgeblendet werden (ein Leeren würde das Markup der Felder mitnehmen).
+  const container = $("local-extremes-hosts");
   const rows = climate.extremeDays ?? [];
+  const panelsInDom = [...container.querySelectorAll(".chart-panel")];
+  for (const panel of panelsInDom) panel.hidden = false;
+  container.querySelector(".chart-split__note")?.remove();
+  const fail = () => {
+    for (const panel of panelsInDom) panel.hidden = true;
+    container.appendChild(el("p", "chart-split__note loading", "Keine Ortsdaten verfügbar."));
+  };
   if (!rows.length) {
-    host.appendChild(el("p", "loading", "Keine Ortsdaten verfügbar."));
+    fail();
     return;
   }
-  const hotDecades = decadalMeans(rows.map((row) => [row[0], row[1]]));
-  const frostDecades = decadalMeans(rows.map((row) => [row[0], row[3]]));
-  const points = [];
-  for (const [decade, value] of hotDecades) points.push([decade - 0.35, value, 0]);
-  for (const [decade, value] of frostDecades) points.push([decade + 0.35, value, 1]);
-  points.sort((a, b) => a[0] - b[0]);
-  const hotMean = hotDecades.length ? hotDecades[hotDecades.length - 1][1] - hotDecades[0][1] : null;
 
-  plot(host, {
-    height: 300,
-    series: [
-      {
-        id: "days",
-        label: "Tage je Jahr",
-        color: PALETTE.neutral,
-        kind: "bars",
-        points,
-        palette: [PALETTE.temperature, PALETTE.cold],
-        legend: false,
-        digits: 0,
-        unit: "Tage",
-      },
-    ],
-    x: { format: (value) => `${Math.floor(value / 10) * 10}er` },
-    y: { digits: 0, unit: "Tage je Jahr" },
-    tooltipExtra: () => {
-      const hot = hotDecades[hotDecades.length - 1];
-      const frost = frostDecades[frostDecades.length - 1];
-      return `Heiße Tage ${formatNumber(hot?.[1], 0)}, Frosttage ${formatNumber(frost?.[1], 0)} je Jahr im Mittel des letzten Jahrzehnts`;
+  // Heiße Tage und Frosttage liegen um ein Vielfaches auseinander. In Gruppenbalken
+  // auf einer gemeinsamen Achse verschwanden die heißen Tage deshalb neben den
+  // Frosttagen; jetzt stehen zwei Verlaufsfelder mit je eigener, bei null
+  // beginnender Achse nebeneinander.
+  const panels = [
+    {
+      key: "hot",
+      label: "Tage ≥ 30 °C",
+      color: PALETTE.temperature,
+      decades: decadalMeans(rows.map((row) => [row[0], row[1]])),
     },
-  });
+    {
+      key: "frost",
+      label: "Frosttage < 0 °C",
+      color: PALETTE.cold,
+      decades: decadalMeans(rows.map((row) => [row[0], row[3]])),
+    },
+  ];
 
-  const legend = el("div", "legend-inline");
-  const item = (color, text) => {
-    const node = el("span", "legend-item legend-item--static");
-    const swatch = el("span", "legend-swatch");
-    swatch.style.background = color;
-    node.append(swatch, el("span", null, text));
-    return node;
-  };
-  legend.append(item(PALETTE.temperature, "Tage ≥ 30 °C"), item(PALETTE.cold, "Tage < 0 °C (Frosttage)"));
-  host.appendChild(legend);
+  const firstDecade = panels[0].decades[0]?.[0];
+  const lastDecade = panels[0].decades[panels[0].decades.length - 1]?.[0];
+  if (!Number.isFinite(firstDecade) || !Number.isFinite(lastDecade)) {
+    fail();
+    return;
+  }
+  // Beschriftung nur alle 20 Jahre: in schmalen Spalten überlagern sich sonst die Jahreszahlen.
+  const tickValues = panels[0].decades
+    .map(([decade]) => decade)
+    .filter((decade) => (decade - firstDecade) % 20 === 0);
+  const formatDecade = (value) => `${Math.floor(value / 10) * 10}er`;
+  const signed = (value) => `${value > 0 ? "+" : ""}${formatNumber(value, 0)}`;
 
+  for (const panel of panels) {
+    const points = panel.decades.map(([decade, value]) => [decade, value]);
+    const chartNode = $(`local-chart-extremes-${panel.key}`);
+    if (!chartNode) continue;
+    const axis = integerAxis(points.map(([, value]) => value));
+    plot(chartHost(`local-chart-extremes-${panel.key}`), {
+      height: 200,
+      legend: false,
+      series: [
+        {
+          id: panel.key,
+          label: panel.label,
+          color: panel.color,
+          kind: "dots",
+          dotRadius: 3.4,
+          width: 2.4,
+          points,
+          digits: 0,
+          // Einzahl, wenn die gerundete Anzeige 1 ergibt („1 Tag“, nicht „1 Tage“).
+          unit: (value) => (Math.abs(Math.round(value)) === 1 ? "Tag je Jahr" : "Tage je Jahr"),
+        },
+      ],
+      x: { domain: [firstDecade - 4, lastDecade + 4], tickValues, format: formatDecade },
+      y: { domain: axis.domain, ticks: axis.ticks, zero: true, digits: 0, unit: "Tage" },
+      tooltipExtra: (active) => {
+        const point = active[0]?.point;
+        const base = panel.decades[0];
+        if (!point || !base) return null;
+        if (point[0] === base[0]) return `Bezugsdekade für den Vergleich mit späteren Jahrzehnten`;
+        const difference = point[1] - base[1];
+        return `${signed(difference)} ${Math.abs(Math.round(difference)) === 1 ? "Tag" : "Tage"} gegenüber dem Mittel der ${formatDecade(firstDecade)} Jahre`;
+      },
+    });
+
+    const delta = $(`local-extremes-${panel.key}-delta`);
+    const first = panel.decades[0];
+    const last = panel.decades[panel.decades.length - 1];
+    if (delta && first && last) {
+      delta.textContent = `${formatNumber(first[1], 0)} → ${formatNumber(last[1], 0)} Tage · ${signed(last[1] - first[1])} seit den ${formatDecade(firstDecade)} Jahren`;
+    }
+  }
+
+  const years = rows.map((row) => row[0]);
   sourceNote(
     "local-extremes-source",
     {
@@ -1301,7 +1359,7 @@ function renderLocalExtremes(climate) {
       label: "Tagesmaximum und Tagesminimum",
       homepage: "https://open-meteo.com/en/docs/historical-weather-api",
     },
-    hotMean !== null ? `Heiße Tage je Dekade: ${hotMean > 0 ? "+" : ""}${formatNumber(hotMean, 1)} Tage gegenüber der ersten Dekade` : "",
+    `10-Jahres-Mittel aus ${years.length} vollständigen Jahren (${years[0]}–${years[years.length - 1]}); Jahrzehnte mit weniger als acht Jahren bleiben außen vor.`,
   );
 }
 

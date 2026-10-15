@@ -96,7 +96,10 @@ Hinweise zum lokalen Betrieb:
   Erwärmungsstreifen und Kennzahlen ausgeschlossen, weil die warmen Monate das
   Mittel sonst nach oben verzerren.
 - **Extremtage:** Tage mit Tagesmaximum ≥ 30 °C und Tage mit Tagesminimum < 0 °C,
-  aggregiert zu 10-Jahres-Mitteln über vollständige Jahre.
+  aggregiert zu 10-Jahres-Mitteln über vollständige Jahre. Beide Reihen liegen um
+  ein Vielfaches auseinander (Frosttage sind viel häufiger); sie werden deshalb in
+  zwei Feldern mit je eigener, bei null beginnender Achse gezeigt statt in
+  Gruppenbalken auf einer gemeinsamen Achse.
 - **Projektion:** Drei Modelle (MRI_AGCM3_2_S, EC_Earth3P_HR, MPI_ESM1_2_XR) aus
   der HighResMIP-Reihe, näherungsweise hoher Emissionspfad. Die Spanne 2041–2050
   ist die Spanne der Modell-Jahrzehntmittel, nicht einzelner Jahre.

@@ -528,7 +528,16 @@ export function plot(host, config) {
       if (series.kind === "dots") {
         for (const point of points) {
           if (!Number.isFinite(point[1])) continue;
-          svg.appendChild(el("circle", { cx: scaleX(point[0]), cy: scale(point[1]), r: 2.2, fill: series.color }));
+          svg.appendChild(
+            el("circle", {
+              cx: scaleX(point[0]),
+              cy: scale(point[1]),
+              r: series.dotRadius ?? 2.2,
+              fill: series.color,
+              stroke: series.dotRadius ? "#0b0e12" : null,
+              "stroke-width": series.dotRadius ? 1.4 : null,
+            }),
+          );
         }
       }
     }
@@ -611,8 +620,10 @@ export function plot(host, config) {
     function renderTip(xValue, clientX, rect, width) {
       const rows = activePoints.map(({ series, point }) => {
         const digits = series.digits ?? current.y?.digits ?? 1;
-        const unit = series.unit ?? current.y?.unit ?? "";
         const value = point.length > 2 && series.valueComponent ? point[series.valueComponent] : point[1];
+        // Einheit darf eine Funktion sein, damit „1 Tag“ nicht als „1 Tage“ erscheint.
+        const unit =
+          typeof series.unit === "function" ? series.unit(value) : series.unit ?? current.y?.unit ?? "";
         return { label: series.label, color: series.color, value: `${formatNumber(value, digits)}${unit ? ` ${unit}` : ""}` };
       });
       const title = (current.x?.format ?? ((value) => String(value)))(xValue);

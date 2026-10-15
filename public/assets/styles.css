@@ -663,6 +663,53 @@ p {
   color: var(--muted);
 }
 
+/* Zwei Verläufe nebeneinander, wenn die Werte zu weit auseinanderliegen
+   für eine gemeinsame Achse (z. B. heiße Tage und Frosttage). */
+.chart-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 4px 18px;
+}
+
+.chart-panel {
+  min-width: 0;
+}
+
+.chart-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.chart-panel__label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chart-panel__mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.chart-panel__mark--hot {
+  background: var(--warm);
+}
+
+.chart-panel__mark--cold {
+  background: var(--cool);
+}
+
+.chart-panel__delta {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
 .chart-tip {
   position: absolute;
   z-index: 5;
