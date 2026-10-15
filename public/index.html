@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Klimawandel: Datenlage – anthropogener Klimawandel in Zahlen</title>
+    <meta
+      name="description"
+      content="Interaktive Informationsseite zum anthropogenen Klimawandel: CO₂, globale Temperatur, Methan, Lachgas, arktisches Meereis und Meeresspiegel mit laufend aktualisierten Daten aus öffentlichen Messnetzen."
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0e12" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="./" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0e12'/%3E%3Crect x='6' y='18' width='20' height='9' fill='%23dc5b57'/%3E%3Crect x='6' y='9' width='20' height='7' fill='%23e08a3c'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#befund">Zum Inhalt springen</a>
+
+    <header class="site-head">
+      <div class="site-head__inner">
+        <a class="brand" href="#befund">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <span class="brand__text">Klimawandel &middot; Datenlage</span>
+        </a>
+        <nav class="site-nav" aria-label="Abschnitte">
+          <a href="#befund">Befund</a>
+          <a href="#co2">CO₂</a>
+          <a href="#temperatur">Temperatur</a>
+          <a href="#gase">Gase</a>
+          <a href="#meereis">Meereis</a>
+          <a href="#meeresspiegel">Meeresspiegel</a>
+          <a href="#ursachen">Ursachen</a>
+          <a href="#ort">Ihr Ort</a>
+          <a href="#budget">Budget</a>
+          <a href="#quellen">Quellen</a>
+        </nav>
+        <p class="live-status" id="update-status" role="status" aria-live="polite">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="update-status-text">Daten werden geladen</span>
+        </p>
+      </div>
+    </header>
+
+    <main>
+      <!-- ============================= Befund ============================= -->
+      <section class="section section--hero" id="befund">
+        <div class="wrap">
+          <p class="eyebrow">Wissenschaftliche Datenlage, laufend aktualisiert</p>
+          <h1>Der anthropogene Klimawandel in Zahlen</h1>
+          <p class="lede">
+            Die Erdoberfläche hat sich gegenüber der vorindustriellen Zeit um etwa 1,4&nbsp;bis&nbsp;1,6&nbsp;°C erwärmt.
+            Diese Seite zeigt die Messreihen dahinter: Kohlendioxid, Methan und Lachgas in der Atmosphäre, die globale
+            Temperaturanomalie, das arktische Meereis und den Meeresspiegel. Alle Zeitreihen stammen aus öffentlichen
+            Messnetzen und werden bei jedem Seitenaufruf aus den Originaldaten der Betreiber neu ausgewertet.
+          </p>
+
+          <div class="quote-block">
+            <blockquote>
+              <p class="quote-block__text">&bdquo;<span data-content="hero-quote"></span>&ldquo;</p>
+              <p class="quote-block__original" lang="en"><span data-content="hero-quote-original"></span></p>
+            </blockquote>
+            <p class="quote-block__source">
+              <a data-link="hero-quote" href="#quellen"></a>
+            </p>
+          </div>
+
+          <div class="kpi-grid" id="kpi-grid" aria-busy="true">
+            <p class="loading">Kennzahlen werden geladen …</p>
+          </div>
+
+          <h2 class="section__sub">Was der Befund umfasst</h2>
+          <div class="card-grid" id="evidence-grid"></div>
+
+          <h2 class="section__sub">Warum das nicht auf einen einzelnen Messwert ankommt</h2>
+          <div class="prose">
+            <p>
+              Klima ist der statistische Zustand des Systems über Jahrzehnte, nicht das Wetter eines Tages. Aussagen
+              über Ursachen beruhen deshalb auf drei voneinander unabhängigen Prüfungen: der Physik der Treibhausgase,
+              dem Muster der beobachteten Veränderungen (Stratosphäre kühlt, Troposphäre erwärmt sich, Nächte erwärmen
+              sich stärker als Tage, Polarregionen stärker als die Tropen) und dem Vergleich von Modellen mit und ohne
+              menschliche Antriebe. Erst die Übereinstimmung aller drei ergibt die Formulierung
+              &bdquo;eindeutig&ldquo;.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= CO2 ============================= -->
+      <section class="section" id="co2">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Kohlendioxid</h2>
+            <p class="section__lead">
+              Kohlendioxid ist das wichtigste vom Menschen freigesetzte Treibhausgas, weil es in großen Mengen entsteht
+              und sehr lange in der Atmosphäre bleibt. Ein Teil der Emissionen wird in Jahrzehnten abgebaut, ein Teil
+              wirkt über Jahrtausende.
+            </p>
+          </header>
+
+          <figure class="chart-card" aria-labelledby="co2-chart-title">
+            <figcaption class="chart-card__head">
+              <div>
+                <h3 id="co2-chart-title">CO₂-Konzentration in der Atmosphäre</h3>
+                <p class="chart-card__sub">
+                  Mauna Loa, Hawaii. Die Sägezahnschwankung entsteht durch die Vegetation der Nordhalbkugel, nicht durch
+                  menschliche Emissionen. Der ansteigende Trend ist die eigentliche Aussage.
+                </p>
+              </div>
+              <div class="control-group" id="co2-controls" role="group" aria-label="Zeitraum der CO₂-Kurve"></div>
+            </figcaption>
+            <div class="chart-host" id="chart-co2"></div>
+            <p class="chart-card__foot">
+              <span class="source-note" id="co2-source"></span>
+            </p>
+          </figure>
+
+          <div class="dual-grid">
+            <figure class="chart-card" aria-labelledby="co2-annual-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="co2-annual-title">Jahresmittel und jährlicher Anstieg</h3>
+                  <p class="chart-card__sub">
+                    Der Zuwachs pro Jahr hat sich seit den 1960er-Jahren mehr als verdoppelt. Er misst, wie viel von
+                    den Emissionen in der Atmosphäre verbleibt.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host" id="chart-co2-annual"></div>
+              <p class="chart-card__foot"><span class="source-note" id="co2-annual-source"></span></p>
+            </figure>
+
+            <div class="stat-panel" id="co2-panel" aria-live="polite">
+              <h3>Derzeitige Werte</h3>
+              <p class="loading">Wird geladen …</p>
+            </div>
+          </div>
+
+          <div class="prose">
+            <p>
+              Vor der Industrialisierung lag die CO₂-Konzentration bei etwa <span data-content="preindustrial-co2"></span>.
+              Die heutigen Werte liegen deutlich darüber; der IPCC beziffert den Anstieg seit 1750 auf
+              <span data-content="co2-increase"></span>. Ein solcher Sprung ist im Vergleich der letzten
+              Jahrmillionen außergewöhnlich schnell – vergleichbare Konzentrationen traten zuletzt vor mehreren
+              Millionen Jahren auf, damals bei deutlich höherem Meeresspiegel.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Temperatur ============================= -->
+      <section class="section" id="temperatur">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Globale Temperatur</h2>
+            <p class="section__lead">
+              Gemessen wird die Abweichung vom Mittel der Jahre 1951&ndash;1980, nicht die absolute Temperatur. Der
+              Grund ist praktisch: Anomalien sind über große Gebiete hinweg vergleichbar und weniger von der
+              Stationsdichte abhängig.
+            </p>
+          </header>
+
+          <figure class="chart-card" aria-labelledby="temperature-chart-title">
+            <figcaption class="chart-card__head">
+              <div>
+                <h3 id="temperature-chart-title">Jahresmittel relativ zu 1951&ndash;1980</h3>
+                <p class="chart-card__sub">
+                  Einzelne Jahre schwanken durch El&nbsp;Niño, Vulkanausbrüche und Aerosole. Die Linie zeigt das
+                  gleitende 12-Monats-Mittel; sie macht das Signal sichtbar, nicht das Rauschen.
+                </p>
+              </div>
+              <div class="control-group" id="temperature-controls" role="group" aria-label="Darstellung der Temperaturkurve"></div>
+            </figcaption>
+            <div class="chart-host" id="chart-temperature"></div>
+            <p class="chart-card__foot"><span class="source-note" id="temperature-source"></span></p>
+          </figure>
+
+          <div class="dual-grid">
+            <div class="stat-panel" id="temperature-panel" aria-live="polite">
+              <h3>Einordnung</h3>
+              <p class="loading">Wird geladen …</p>
+            </div>
+            <div class="prose">
+              <p>
+                Die Weltorganisation für Meteorologie nennt für <span data-content="wmo-2024"></span> eine Erwärmung
+                gegenüber 1850&ndash;1900 und für <span data-content="wmo-2025"></span> rund den Wert darunter. Ein
+                einzelnes Jahr über 1,5&nbsp;°C ist noch keine dauerhafte Überschreitung des Pariser Ziels; entscheidend
+                ist der mehrjährige Mittelwert. Der IPCC beziffert die Erwärmung für 2011&ndash;2020 auf
+                <span data-content="ar6-warming"></span> und den allein vom Menschen verursachten Anteil auf
+                <span data-content="ar6-human"></span>.
+              </p>
+              <p>
+                Die Umrechnung der GISTEMP-Reihe auf den vorindustriellen Bezug ist eine Näherung. Zusätzlich zum
+                Anomaliewert gegenüber 1951&ndash;1980 sind nach Angaben von NASA/GISS rund
+                <span data-content="gistemp-offset"></span> zu addieren.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Gase ============================= -->
+      <section class="section" id="gase">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Methan und Lachgas</h2>
+            <p class="section__lead">
+              Kohlendioxid ist nicht das einzige Gas mit Wirkung. Methan wirkt über zwanzig Jahre etwa 80-mal stärker
+              als CO₂, zerfällt aber schneller. Lachgas ist langlebig und entsteht vor allem in der Landwirtschaft.
+            </p>
+          </header>
+
+          <div class="dual-grid">
+            <figure class="chart-card" aria-labelledby="ch4-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="ch4-title">Methan (CH₄), globales Mittel</h3>
+                  <p class="chart-card__sub">Konzentration in Teilen pro Milliarde, monatliche Mittel über mehrere Stationen.</p>
+                </div>
+              </figcaption>
+              <div class="chart-host chart-host--short" id="chart-ch4"></div>
+              <p class="chart-card__foot"><span class="source-note" id="ch4-source"></span></p>
+            </figure>
+
+            <figure class="chart-card" aria-labelledby="n2o-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="n2o-title">Lachgas (N₂O), globales Mittel</h3>
+                  <p class="chart-card__sub">Der Anstieg verläuft langsamer, ist aber stetig und schwer umkehrbar.</p>
+                </div>
+              </figcaption>
+              <div class="chart-host chart-host--short" id="chart-n2o"></div>
+              <p class="chart-card__foot"><span class="source-note" id="n2o-source"></span></p>
+            </figure>
+          </div>
+
+          <div class="stat-panel" id="gas-panel" aria-live="polite">
+            <h3>Aktuelle Anstiege</h3>
+            <p class="loading">Wird geladen …</p>
+          </div>
+
+          <div class="prose">
+            <p>
+              Der IPCC nennt für 2019 Konzentrationen von <span data-content="ar6-concentrations"></span> und
+              Anstiege seit 1750 von <span data-content="ar6-increases"></span>. Bei Methan ist der Anteil, der aus
+              menschlichen Quellen stammt – Landwirtschaft, Abfall, Förderung fossiler Energieträger – eindeutig
+              zuordenbar; die genaue Aufteilung zwischen Quellen bleibt Gegenstand der Forschung.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Meereis ============================= -->
+      <section class="section" id="meereis">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Arktisches Meereis</h2>
+            <p class="section__lead">
+              Meereis ist eine der sichtbarsten Folgen der Erwärmung. Es verschwindet im Sommer, nicht im Winter: Die
+              Septemberwerte sind der empfindlichste Indikator der Arktis.
+            </p>
+          </header>
+
+          <div class="dual-grid">
+            <figure class="chart-card" aria-labelledby="seaice-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="seaice-title">September-Minimum der Meereisausdehnung</h3>
+                  <p class="chart-card__sub">
+                    Jährliches Minimum, gemessen auf Basis täglicher Satellitendaten ab 1979. Die
+                    Vergleichsperiode ist der Mittelwert 1981&ndash;2010.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host" id="chart-seaice-sept"></div>
+              <p class="chart-card__foot"><span class="source-note" id="seaice-source"></span></p>
+            </figure>
+
+            <figure class="chart-card" aria-labelledby="seaice-season-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="seaice-season-title">Jahresverlauf im Vergleich</h3>
+                  <p class="chart-card__sub">
+                    Die Kurve des laufenden Jahres gegen den Mittelwert 1981&ndash;2010. Im Winter sind die
+                    Unterschiede klein, ab dem Frühjahr öffnet sich die Lücke.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host" id="chart-seaice-season"></div>
+              <p class="chart-card__foot"><span class="source-note" id="seaice-season-source"></span></p>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Meeresspiegel ============================= -->
+      <section class="section" id="meeresspiegel">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Meeresspiegel</h2>
+            <p class="section__lead">
+              Der globale Meeresspiegel steigt aus zwei Gründen: Wasser dehnt sich beim Erwärmen aus, und Gletscher
+              sowie Eisschilde verlieren Masse. Beides reagiert langsam – und läuft umso schwerer rückwärts.
+            </p>
+          </header>
+
+          <figure class="chart-card" aria-labelledby="sealevel-title">
+            <figcaption class="chart-card__head">
+              <div>
+                <h3 id="sealevel-title">Globaler Meeresspiegel aus Satellitenmessung</h3>
+                <p class="chart-card__sub">
+                  Saisonale Schwankungen und die Landhebung nach der letzten Eiszeit sind rechnerisch entfernt. Die
+                  Angabe bezieht sich auf das Mittel der ersten Messjahre.
+                </p>
+              </div>
+              <div class="control-group" id="sealevel-controls" role="group" aria-label="Zeitraum der Meeresspiegelkurve"></div>
+            </figcaption>
+            <div class="chart-host" id="chart-sealevel"></div>
+            <p class="chart-card__foot"><span class="source-note" id="sealevel-source"></span></p>
+          </figure>
+
+          <div class="stat-panel" id="sealevel-panel" aria-live="polite">
+            <h3>Anstiegsraten</h3>
+            <p class="loading">Wird geladen …</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Ursachen ============================= -->
+      <section class="section" id="ursachen">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Ursachen und Verantwortung</h2>
+            <p class="section__lead">
+              Die Frage nach der Ursache ist keine Weltanschauungsfrage, sondern eine Bilanz: Welche Antriebe können
+              die gemessene Erwärmung erklären und welche nicht.
+            </p>
+          </header>
+
+          <div class="dual-grid">
+            <div class="card card--forcing">
+              <h3>Strahlungsantrieb gegenüber 1750</h3>
+              <p class="card__lead">
+                Ein Strahlungsantrieb ist die Änderung des Energieflusses im Klimasystem, gemessen in Watt pro
+                Quadratmeter. Positive Werte erwärmen, negative kühlen.
+              </p>
+              <div class="forcing" id="forcing-visual"></div>
+              <p class="source-note" id="forcing-source"></p>
+            </div>
+
+            <div class="card">
+              <h3>Woher die Emissionen kommen</h3>
+              <p class="card__lead">
+                Kumulativ seit 1850 stammen nach Angaben des Global Carbon Budget rund
+                <span data-content="cumulative-share-fossil"></span> der CO₂-Emissionen aus fossilen Energieträgern und
+                Industrieprozessen und rund <span data-content="cumulative-share-land"></span> aus Landnutzungsänderungen.
+              </p>
+              <div class="cumulative-bar" id="cumulative-bar" role="img" aria-label="Anteil fossiler Emissionen und Landnutzung an den kumulativen CO₂-Emissionen seit 1850"></div>
+              <div class="legend-inline" id="cumulative-legend"></div>
+              <p class="source-note" id="emissions-source"></p>
+              <p>
+                Im laufenden Jahr liegen die Emissionen aus fossilen Quellen und Industrie bei etwa
+                <span data-content="gcb-fossil"></span>, jene aus Landnutzung bei rund
+                <span data-content="gcb-land"></span>. Fossile Energieträger decken weiterhin rund
+                <span data-content="fossil-share"></span> des globalen Energieangebots.
+              </p>
+            </div>
+          </div>
+
+          <div class="dual-grid">
+            <figure class="chart-card" aria-labelledby="percapita-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="percapita-title">Emissionen pro Kopf</h3>
+                  <p class="chart-card__sub">
+                    CO₂ aus fossilen Brennstoffen und Industrieprozessen, Territorialprinzip, Bezugsjahr
+                    <span data-content="percapita-year"></span>.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host chart-host--bars" id="chart-percapita"></div>
+              <p class="chart-card__foot">
+                <span class="source-note" id="percapita-source"></span>
+              </p>
+            </figure>
+
+            <div class="card">
+              <h3>Was pro Kopf bedeutet</h3>
+              <div class="prose">
+                <p>
+                  Pro-Kopf-Werte sind kein Urteil über einzelne Menschen, sondern eine Rechengröße, um
+                  Volkswirtschaften zu vergleichen. Sie zeigen, dass die historische Verantwortung und die heutige
+                  Emissionshöhe unterschiedlich verteilt sind: Westliche Industriestaaten haben den größten Teil der
+                  kumulierten Emissionen verursacht, während in aufstrebenden Volkswirtschaften die jährlichen
+                  Emissionen heute höher liegen und Lebensstandard und Infrastruktur noch aufgebaut werden.
+                </p>
+                <p>
+                  Gemessen am Weltdurchschnitt von <span data-content="percapita-world"></span> liegt Deutschland bei
+                  <span data-content="percapita-de"></span> und die USA bei <span data-content="percapita-us"></span>.
+                  Indien liegt bei <span data-content="percapita-in"></span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Ihr Ort ============================= -->
+      <section class="section" id="ort">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Ihr Ort</h2>
+            <p class="section__lead">
+              Klimawandel findet nicht nur global statt. Für jeden Ort lässt sich berechnen, wie stark sich die
+              Jahresmitteltemperatur bereits verschoben hat und was die Modelle bis 2050 erwarten. Die Auswertung wird
+              serverseitig erzeugt; die eingegebenen Koordinaten werden nicht gespeichert.
+            </p>
+          </header>
+
+          <form class="local-form" id="local-form" autocomplete="off">
+            <div class="field">
+              <label for="local-query">Ort suchen</label>
+              <input id="local-query" type="search" name="q" placeholder="z. B. Freiburg, Wien, Zürich" minlength="2" />
+              <ul class="suggestions" id="local-suggestions" hidden></ul>
+            </div>
+            <button type="submit" class="button">Auswerten</button>
+            <button type="button" class="button button--ghost" id="local-geolocate">Standort verwenden</button>
+          </form>
+          <p class="form-note" id="local-status" role="status" aria-live="polite"></p>
+
+          <div class="kpi-grid kpi-grid--local" id="local-kpis"></div>
+
+          <div class="dual-grid">
+            <figure class="chart-card" aria-labelledby="local-stripes-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="local-stripes-title">Erwärmungsstreifen am Ort</h3>
+                  <p class="chart-card__sub">
+                    Jeder Streifen ist ein Jahr, die Farbe seine Abweichung vom Ortsmittel
+                    1971&ndash;2000. Blau bedeutet kühler, rot wärmer.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host chart-host--stripes" id="local-stripes"></div>
+              <p class="chart-card__foot"><span class="source-note" id="local-stripes-source"></span></p>
+            </figure>
+
+            <figure class="chart-card" aria-labelledby="local-annual-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="local-annual-title">Jahresmittel am Ort</h3>
+                  <p class="chart-card__sub">
+                    Absolute Jahresmitteltemperatur. Die graue Fläche markiert den Bezugszeitraum
+                    1951&ndash;1980.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host" id="local-chart-annual"></div>
+              <p class="chart-card__foot"><span class="source-note" id="local-annual-source"></span></p>
+            </figure>
+          </div>
+
+          <div class="dual-grid">
+            <figure class="chart-card" aria-labelledby="local-extremes-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="local-extremes-title">Heiße Tage und Frosttage</h3>
+                  <p class="chart-card__sub">
+                    Tage mit Höchsttemperatur über 30&nbsp;°C und Tage mit Tiefsttemperatur unter 0&nbsp;°C, jeweils
+                    als 10-Jahres-Mittel. Nur vollständige Jahre.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host" id="local-chart-extremes"></div>
+              <p class="chart-card__foot"><span class="source-note" id="local-extremes-source"></span></p>
+            </figure>
+
+            <figure class="chart-card" aria-labelledby="local-projection-title">
+              <figcaption class="chart-card__head">
+                <div>
+                  <h3 id="local-projection-title">Projektion bis 2050</h3>
+                  <p class="chart-card__sub">
+                    Spanne aus drei regionalen CMIP6-Modellen entlang eines sehr hohen Emissionspfads. Die Spanne
+                    zeigt Modellunsicherheit, nicht die Wirkung unterschiedlicher Klimapolitik.
+                  </p>
+                </div>
+              </figcaption>
+              <div class="chart-host" id="local-chart-projection"></div>
+              <p class="chart-card__foot">
+                <span class="source-note" id="local-projection-source"></span>
+                <span class="source-note" id="local-projection-note"></span>
+              </p>
+            </figure>
+          </div>
+
+          <div class="stat-panel" id="local-current" aria-live="polite">
+            <h3>Aktuelle Bedingungen</h3>
+            <p class="loading">Wird geladen …</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Budget ============================= -->
+      <section class="section" id="budget">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Wie viel noch bleibt</h2>
+            <p class="section__lead">
+              Die Erwärmung folgt näherungsweise der kumulierten CO₂-Menge. Daraus lässt sich ein Budget ableiten: Wie
+              viel Kohlendioxid kann noch ausgestoßen werden, wenn ein Temperaturziel eingehalten werden soll.
+            </p>
+          </header>
+
+          <div class="budget">
+            <form class="budget__form" id="budget-form">
+              <div class="field">
+                <label for="budget-limit">Temperaturziel</label>
+                <select id="budget-limit">
+                  <option value="1.5" selected>1,5 °C</option>
+                  <option value="1.7">1,7 °C</option>
+                  <option value="2.0">2,0 °C</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="budget-prob">Wahrscheinlichkeit der Einhaltung</label>
+                <select id="budget-prob">
+                  <option value="50" selected>50 %</option>
+                  <option value="67">67 %</option>
+                </select>
+              </div>
+            </form>
+
+            <div class="budget__output" id="budget-output" aria-live="polite">
+              <p class="budget__value" id="budget-value">–</p>
+              <p class="budget__unit">Gt CO₂ ab Anfang 2020</p>
+              <p class="budget__years" id="budget-years"></p>
+            </div>
+          </div>
+
+          <div class="prose">
+            <p id="budget-note" class="note"></p>
+            <p>
+              Das Budget ist keine Toleranzgrenze, sondern eine Bilanz. Es beschreibt die noch verfügbare Menge an
+              Kohlendioxid, nicht einen Zeitraum, in dem noch emittiert werden darf: Das Budget wird auch dann
+              aufgebraucht, wenn erst später emittiert wird.
+            </p>
+          </div>
+
+          <h2 class="section__sub">Was das an Maßnahmen bedeuten würde</h2>
+          <div class="target-grid" id="mitigation-targets"></div>
+
+          <div class="dual-grid">
+            <div class="card">
+              <h3>Kosten der Stromerzeugung</h3>
+              <div class="metric-list" id="mitigation-costs"></div>
+              <p class="note" id="mitigation-cost-note"></p>
+            </div>
+            <div class="card">
+              <h3>Ausbau und Anteile</h3>
+              <div class="metric-list" id="mitigation-electricity"></div>
+              <p class="note" id="mitigation-electricity-note"></p>
+            </div>
+          </div>
+
+          <div class="prose">
+            <p class="note" id="mitigation-notes"></p>
+            <p class="source-note" id="mitigation-sources"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= Grenzen ============================= -->
+      <section class="section" id="grenzen">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Grenzen dieser Darstellung</h2>
+            <p class="section__lead">
+              Wer Daten zeigt, muss sagen, wo sie unsicher sind. Die folgenden Punkte gelten für alle Zahlen auf dieser
+              Seite.
+            </p>
+          </header>
+          <div class="card-grid" id="limitations-grid"></div>
+        </div>
+      </section>
+
+      <!-- ============================= Quellen ============================= -->
+      <section class="section" id="quellen">
+        <div class="wrap">
+          <header class="section__head">
+            <h2>Quellen und Methodik</h2>
+            <p class="section__lead">
+              Jede Kurve auf dieser Seite stammt aus einer Originaldatei eines Messnetzes. Die Tabelle zeigt für jede
+              Quelle den Status des letzten Abrufs, die Anzahl verarbeiteter Messwerte und den jüngsten Messwert. Die
+              Rohdaten werden im Zwischenspeicher des Servers gehalten und bei jedem Ablauf neu ausgewertet.
+            </p>
+          </header>
+
+          <div class="table-wrap">
+            <table class="data-table" id="sources-table">
+              <caption>Live-Datenquellen dieser Seite</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Indikator</th>
+                  <th scope="col">Betreiber</th>
+                  <th scope="col">Takt</th>
+                  <th scope="col">Jüngster Wert</th>
+                  <th scope="col">Messwerte</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" class="loading">Quellen werden geladen …</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="section__sub">Weiterführende Literatur</h3>
+          <ul class="link-list" id="external-sources"></ul>
+
+          <h3 class="section__sub">Verarbeitung</h3>
+          <div class="prose">
+            <p>
+              Alle Werte werden serverseitig aus den Rohdateien geparst und aggregiert. Es werden keine
+              Analyse-Skripte Dritter geladen, es werden keine Cookies gesetzt und es findet kein Tracking statt. Bei
+              fehlerhaften oder nicht erreichbaren Quellen zeigt die Seite den Fehler an, statt Ersatzwerte
+              einzusetzen.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <div class="wrap">
+        <p>
+          Diese Seite fasst öffentlich zugängliche Messdaten zusammen und zitiert die Bewertungen des IPCC. Sie nennt
+          bewusst Unsicherheiten und Bezugszeiträume, weil ohne sie Zahlen nicht interpretierbar sind.
+        </p>
+        <p class="site-foot__meta">
+          <span id="footer-meta">Ladezeitpunkt wird ermittelt …</span>
+        </p>
+      </div>
+    </footer>
+
+    <script type="module" src="./assets/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.wrangler/
+.scratch/
+.freebuff/
+*.log
+.DS_Store

@@ -1,0 +1,19 @@
+{
+  "name": "klimawandel-datenlage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Interaktive Informationsseite zum anthropogenen Klimawandel auf Basis öffentlicher Live-Daten",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "esbuild src/worker.js --bundle --format=esm --platform=neutral --target=es2022 --outfile=dist/worker.js",
+    "test": "node --test test/parse.test.js test/stats.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "wrangler": "^4.151.0"
+  }
+}
