@@ -179,10 +179,6 @@ export async function loadLocalClimate(lat, lon) {
   const warmest = [...completeYears].sort((a, b) => b.value - a.value)[0] ?? null;
   const coldest = [...completeYears].sort((a, b) => a.value - b.value)[0] ?? null;
 
-  const projection = await loadProjection(lat, lon).catch((error) => ({
-    error: String(error?.message ?? error),
-  }));
-
   return {
     generatedAt: new Date().toISOString(),
     location: {
@@ -225,9 +221,24 @@ export async function loadLocalClimate(lat, lon) {
       entry.summerDays,
       entry.frostDays,
     ]),
-    projection,
-    sources: [LOCAL_SOURCE_DEFS.reanalysis, LOCAL_SOURCE_DEFS.projection],
+    sources: [LOCAL_SOURCE_DEFS.reanalysis],
   };
+}
+
+/**
+ * Projektion bis 2050, separat abrufbar. Modellläufe über dreißig Jahre sind beim
+ * Anbieter schwer gewichtet; sie werden deshalb nicht bei jedem Seitenaufruf,
+ * sondern erst bei Bedarf geladen (und dann sieben Tage gehalten).
+ */
+export async function loadLocalProjection(lat, lon) {
+  try {
+    return await loadProjection(lat, lon);
+  } catch (error) {
+    return {
+      error: String(error?.message ?? error),
+      sources: [LOCAL_SOURCE_DEFS.projection],
+    };
+  }
 }
 
 /** Projektion der Jahresmitteltemperatur je Modell bis 2050. */

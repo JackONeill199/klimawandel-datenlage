@@ -4,7 +4,7 @@
  */
 import { UpstreamError, parseCoordinates, withCache } from "./lib/http.js";
 import { collectIndicators } from "./lib/sources.js";
-import { loadLocalClimate, loadLocalCurrent, searchPlaces } from "./lib/local.js";
+import { loadLocalClimate, loadLocalCurrent, loadLocalProjection, searchPlaces } from "./lib/local.js";
 
 const SECURITY_HEADERS = {
   "x-content-type-options": "nosniff",
@@ -72,6 +72,20 @@ async function handleApi(request, env, ctx) {
           // Eine fehlgeschlagene Projektion (z. B. Rate-Limit beim Anbieter) darf nicht
           // tagelang im Zwischenspeicher liegen, sondern nur wenige Minuten.
           ttlFor: (data) => (data.projection?.error || !data.projection?.ensemble?.length ? 300 : TTL.localClimate),
+        },
+      );
+      return jsonResponse(payload, { maxAge: 3600 });
+    }
+    case "/api/local/projection": {
+      const { lat, lon } = parseCoordinates(url);
+      const payload = await withCache(
+        `local-projection/${lat.toFixed(2)}/${lon.toFixed(2)}`,
+        TTL.localClimate,
+        () => loadLocalProjection(lat, lon),
+        {
+          ctx,
+          // Ein Fehlschlag (z. B. Rate-Limit beim Anbieter) darf nicht sieben Tage halten.
+          ttlFor: (data) => (data.error || !data.ensemble?.length ? 300 : TTL.localClimate),
         },
       );
       return jsonResponse(payload, { maxAge: 3600 });

@@ -71,6 +71,32 @@ export function divergingColor(value, max = 1) {
   return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
 }
 
+/**
+ * Text im Diagrammfeld mit Hinterlegung, damit Beschriftungen über Kurven und
+ * Bändern lesbar bleiben (statt auf ihnen zu verschwimmen).
+ */
+function textWithHalo(svg, { x, y, text, className, fill, anchor = "start", halo = true }) {
+  const node = el("text", { x, y, class: className, fill, "text-anchor": anchor }, text);
+  svg.appendChild(node);
+  if (halo) {
+    try {
+      const box = node.getBBox();
+      const rect = el("rect", {
+        x: box.x - 3,
+        y: box.y - 2,
+        width: box.width + 6,
+        height: box.height + 4,
+        rx: 2,
+        class: "chart-halo",
+      });
+      svg.insertBefore(rect, node);
+    } catch {
+      // getBBox ist in seltenen Fällen nicht verfügbar – Text bleibt dann ohne Hinterlegung.
+    }
+  }
+  return node;
+}
+
 function colorWithOpacity(color, opacity) {
   if (opacity === undefined || opacity >= 1) return color;
   if (color.startsWith("#")) {
@@ -241,6 +267,8 @@ export function plot(host, config) {
     const width = Math.max(320, Math.floor(host.clientWidth || 640));
     state.width = width;
     const geometry = computeGeometry(width);
+    // Belegte Bereiche im oberen Rand, damit sich Beschriftungen dort nicht treffen.
+    const marginLabels = [];
     state.geometry = geometry;
     const { padding, innerHeight, innerWidth, xDomain, yDomain, scaleX, scaleY } = geometry;
 
@@ -266,13 +294,13 @@ export function plot(host, config) {
         }),
       );
       if (band.label) {
-        svg.appendChild(
-          el(
-            "text",
-            { x: (x1 + x2) / 2, y: padding.top + 12, class: "chart-band-label", "text-anchor": "middle" },
-            band.label,
-          ),
-        );
+        textWithHalo(svg, {
+          x: (x1 + x2) / 2,
+          y: padding.top + 12,
+          text: band.label,
+          className: "chart-band-label",
+          anchor: "middle",
+        });
       }
     }
 
@@ -323,7 +351,36 @@ export function plot(host, config) {
       }
     }
 
-    // Horizontale Referenzlinien im Diagrammfeld
+    // Beschriftungen gehören in den oberen Rand, nicht ins Diagrammfeld über die Kurven.
+    const placeMarginLabel = ({ x, text, anchor = "start", fill }) => {
+      if (!text) return;
+      const estimated = text.length * 6 + 6;
+      let x1 = anchor === "end" ? x - estimated : x;
+      let x2 = x1 + estimated;
+      const leftLimit = padding.left + 2;
+      const rightLimit = padding.left + innerWidth - 2;
+      if (x1 < leftLimit) {
+        x2 += leftLimit - x1;
+        x1 = leftLimit;
+      }
+      if (x2 > rightLimit) {
+        x1 -= x2 - rightLimit;
+        x2 = rightLimit;
+      }
+      if (x1 < leftLimit || marginLabels.some((iv) => x1 < iv.x2 + 8 && iv.x1 < x2 + 8)) return;
+      marginLabels.push({ x1, x2 });
+      textWithHalo(svg, {
+        x: anchor === "end" ? x2 : x1,
+        y: Math.max(11, padding.top - 6),
+        text,
+        className: "chart-guide-label",
+        fill,
+        anchor,
+        halo: false,
+      });
+    };
+
+    // Horizontale Referenzlinien im Diagrammfeld (Wert steht in der Legende).
     for (const guide of current.yGuides ?? []) {
       const y = scaleY(guide.y);
       if (y < padding.top - 1 || y > padding.top + innerHeight + 1) continue;
@@ -338,19 +395,6 @@ export function plot(host, config) {
           "stroke-dasharray": guide.dash ?? "4 4",
         }),
       );
-      if (guide.label) {
-        const label = el(
-          "text",
-          {
-            x: padding.left + 6,
-            y: y - 5,
-            class: "chart-guide-label",
-            fill: guide.color ?? PALETTE.neutral,
-          },
-          guide.label,
-        );
-        svg.appendChild(label);
-      }
     }
 
     // x-Achse
@@ -391,18 +435,13 @@ export function plot(host, config) {
         }),
       );
       if (guide.label) {
-        svg.appendChild(
-          el(
-            "text",
-            {
-              x: x + 4,
-              y: padding.top + 12 + (guide.offset ?? 0),
-              class: "chart-guide-label",
-              fill: guide.color ?? PALETTE.neutral,
-            },
-            guide.label,
-          ),
-        );
+        const nearRightEdge = x > padding.left + innerWidth - 60;
+        placeMarginLabel({
+          x: nearRightEdge ? x - 4 : x + 4,
+          text: guide.label,
+          anchor: nearRightEdge ? "end" : "start",
+          fill: guide.color ?? PALETTE.neutral,
+        });
       }
     }
 
@@ -432,12 +471,14 @@ export function plot(host, config) {
         const steps = points.map((point) => point[0]);
         const stepWidth = steps.length > 1 ? (steps[1] - steps[0]) : 1;
         const barWidth = Math.max(1, Math.min(18, (stepWidth / (xDomain[1] - xDomain[0])) * innerWidth * 0.72));
-        const zero = scale(current.bars?.zero ?? 0);
+        // Liegt der Nullpunkt außerhalb des dargestellten Bereichs, wird er auf den
+        // unteren Rand begrenzt – sonst ragen die Balken in die Achsenbeschriftung.
+        const zero = Math.min(Math.max(scale(current.bars?.zero ?? 0), padding.top), padding.top + innerHeight);
         for (const point of points) {
           const value = point[1];
           if (!Number.isFinite(value)) continue;
           const x = scaleX(point[0]) - barWidth / 2;
-          const y = scale(value);
+          const y = Math.min(Math.max(scale(value), padding.top), padding.top + innerHeight);
           const color = series.palette && point.length > 2
             ? series.palette[point[2] % series.palette.length]
             : series.colorFor
@@ -499,19 +540,13 @@ export function plot(host, config) {
       const y = scaleY(marker.y);
       svg.appendChild(el("circle", { cx: x, cy: y, r: 3.4, fill: marker.color ?? PALETTE.neutral, stroke: "#0b0e12", "stroke-width": 1.2 }));
       if (marker.label) {
-        svg.appendChild(
-          el(
-            "text",
-            {
-              x: x - 6,
-              y: y - 8,
-              class: "chart-marker-label",
-              "text-anchor": "end",
-              fill: marker.color ?? PALETTE.neutral,
-            },
-            marker.label,
-          ),
-        );
+        const anchor = x > padding.left + innerWidth - 96 ? "end" : "start";
+        placeMarginLabel({
+          x: anchor === "end" ? x - 7 : x + 7,
+          text: marker.label,
+          anchor,
+          fill: marker.color ?? PALETTE.neutral,
+        });
       }
     }
 

@@ -781,12 +781,20 @@ function renderSeaIceCharts(ind) {
       height: 300,
       series: [
         { id: "sept", label: "September-Minimum", color: PALETTE.seaIce, points, width: 1.8, digits: 2, unit: "Mio. km²" },
+        // Wert der Referenzlinie steht in der Legende, damit die Beschriftung nicht auf der Kurve liegt.
+        {
+          id: "climatology",
+          label: climatology ? `Mittel 1981–2010: ${formatNumber(climatology, 2)} Mio. km²` : "Mittel 1981–2010",
+          color: PALETTE.neutral,
+          dash: "4 4",
+          width: 1.4,
+          points: [],
+          interactive: false,
+        },
       ],
       x: { format: (value) => String(Math.round(value)) },
       y: { digits: 1, unit: "Mio. km²" },
-      yGuides: climatology
-        ? [{ y: climatology, label: `Mittel 1981–2010: ${formatNumber(climatology, 2)} Mio. km²`, color: PALETTE.neutral }]
-        : [],
+      yGuides: climatology ? [{ y: climatology, color: PALETTE.neutral }] : [],
       markers: record
         ? [{ x: record.year, y: record.value, label: `Rekordtief ${record.year}`, color: PALETTE.temperature }]
         : [],
@@ -947,7 +955,9 @@ function renderPerCapitaChart() {
       tickValues: regions.map((_, index) => index),
       format: (value) => regions[Math.round(value)]?.name ?? "",
     },
-    y: { digits: 0, unit: "t CO₂ je Person" },
+    // Balken beginnen bei null: Pro-Kopf-Emissionen sind Mengen, kein Trend.
+    y: { digits: 0, unit: "t CO₂ je Person", zero: true },
+    bars: { zero: 0 },
   });
   sourceNote("percapita-source", {
     provider: EMISSIONS.perCapita.source,
@@ -1087,7 +1097,7 @@ async function loadLocal(lat, lon, label) {
     renderLocalStripes(climate);
     renderLocalAnnual(climate);
     renderLocalExtremes(climate);
-    renderLocalProjection(climate);
+    setupProjection(lat, lon, climate);
     renderLocalCurrent(current);
     setLocalStatus(`Ausgewertet: ${label} (${lat.toFixed(3)}°, ${lon.toFixed(3)}°). Datenstand ${formatDate(climate.observed?.coverage?.split("–")[1] ?? "")}.`);
   } catch (error) {
@@ -1295,16 +1305,87 @@ function renderLocalExtremes(climate) {
   );
 }
 
-function renderLocalProjection(climate) {
+const projectionState = { key: null, requested: false };
+
+/**
+ * Die Modellläufe werden erst bei Bedarf geladen: sie sind beim Anbieter schwer
+ * gewichtet, und die Seite soll das Kontingent nicht mit jedem Aufruf belasten.
+ */
+function setupProjection(lat, lon, climate) {
+  const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+  projectionState.key = key;
+  projectionState.requested = false;
   const host = chartHost("local-chart-projection");
-  const projection = climate.projection;
-  if (!projection || projection.error || !projection.ensemble?.length) {
-    const message = el(
+  $("local-projection-note").textContent = "";
+  $("local-projection-source").textContent = "";
+
+  const box = el("div", "placeholder");
+  box.appendChild(
+    el(
       "p",
-      "error",
-      `Projektionsdaten derzeit nicht verfügbar${projection?.error ? `: ${projection.error}` : ""}. Die Seite versucht es beim nächsten Aufruf erneut.`,
+      null,
+      "Die Projektion bis 2050 wird aus drei regionalen Klimamodellen berechnet. Sie wird erst bei Bedarf geladen, " +
+        "weil der Modellabruf rechenintensiv ist und Kontingente beim Datenanbieter verbraucht.",
+    ),
+  );
+  const button = el("button", "button button--ghost", "Projektion berechnen");
+  button.type = "button";
+  button.addEventListener("click", () => requestProjection(lat, lon, climate, key));
+  box.appendChild(button);
+  host.appendChild(box);
+
+  if (typeof IntersectionObserver !== "undefined") {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        requestProjection(lat, lon, climate, key);
+      },
+      { rootMargin: "250px" },
     );
-    host.appendChild(message);
+    observer.observe(host);
+  }
+}
+
+async function requestProjection(lat, lon, climate, key) {
+  if (projectionState.requested || projectionState.key !== key) return;
+  projectionState.requested = true;
+  const host = chartHost("local-chart-projection");
+  host.appendChild(el("p", "loading", "Modellläufe werden abgerufen – das kann einige Sekunden dauern …"));
+
+  try {
+    const response = await fetch(`/api/local/projection?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const projection = await response.json();
+    if (projectionState.key !== key) return;
+    if (projection.error || !projection.ensemble?.length) {
+      throw new Error(projection.error ?? "keine Modelldaten erhalten");
+    }
+    renderLocalProjection(climate, projection);
+  } catch (error) {
+    projectionState.requested = false;
+    const retryHost = chartHost("local-chart-projection");
+    const box = el("div", "placeholder");
+    box.appendChild(
+      el(
+        "p",
+        "error",
+        `Projektionsdaten konnten nicht geladen werden: ${error.message}. Der Datenanbieter begrenzt Modellabrufe pro Stunde; ` +
+          "ein erneuter Versuch ist deshalb oft erst später erfolgreich.",
+      ),
+    );
+    const retry = el("button", "button button--ghost", "Erneut versuchen");
+    retry.type = "button";
+    retry.addEventListener("click", () => requestProjection(lat, lon, climate, key));
+    box.appendChild(retry);
+    retryHost.appendChild(box);
+  }
+}
+
+function renderLocalProjection(climate, projection) {
+  const host = chartHost("local-chart-projection");
+  if (!projection || projection.error || !projection.ensemble?.length) {
+    host.appendChild(el("p", "error", "Projektionsdaten derzeit nicht verfügbar."));
     return;
   }
   const observed = climate.observed?.annual ?? [];
@@ -1338,7 +1419,7 @@ function renderLocalProjection(climate) {
       label: projection.models.join(", "),
       homepage: "https://open-meteo.com/en/docs/climate-api",
     },
-    projection.horizon,
+    `${projection.horizon}, Modelle einzeln ausgewertet`,
   );
   $("local-projection-note").textContent = projection.note ?? "";
 }

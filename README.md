@@ -46,7 +46,8 @@ Dritten; die Content-Security-Policy erlaubt ausschließlich eigene Quellen.
 | --- | --- | --- |
 | `GET /api/indicators` | alle globalen Indikatoren inklusive Quellenprotokoll | 6 h |
 | `GET /api/local/current?lat&lon` | aktuelle Bedingungen, Vorhersage, Luftqualität | 15 min |
-| `GET /api/local/climate?lat&lon` | Ortserwärmung seit 1950, Extremtage, Projektion bis 2050 | 7 Tage (300 s, wenn die Projektion fehlschlägt) |
+| `GET /api/local/climate?lat&lon` | Ortserwärmung seit 1950, Erwärmungsstreifen, Extremtage | 7 Tage |
+| `GET /api/local/projection?lat&lon` | Modellprojektion bis 2050, bei Bedarf geladen | 7 Tage (300 s bei Fehlschlag) |
 | `GET /api/geocode?q` | Ortssuche | 30 Tage |
 | `GET /api/health` | Statusmeldung | keine |
 
@@ -72,9 +73,12 @@ Hinweise zum lokalen Betrieb:
 - `cf: { cacheTtl }` sollte bei Abrufen zu Open-Meteo nicht verwendet werden:
   die Anfragen laufen dann über Cloudflares Netz und teilen sich ein
   ratenbegrenztes Kontingent, was zu HTTP 429 führt.
-- Open-Meteo begrenzt Anfragen pro Minute. Die Projektion wird deshalb mit
-  zwei Wiederholungen und Wartezeiten von 6 und 12 Sekunden abgerufen und bei
-  Fehlschlag nur 5 Minuten zwischengespeichert.
+- Open-Meteo begrenzt Anfragen pro Minute und Stunde, wobei lange Modellläufe
+  stark gewichtet werden. Die Projektion liegt deshalb in einer eigenen Route,
+  wird erst geladen, wenn ihre Karte sichtbar wird (oder auf Klick), mit zwei
+  Wiederholungen und Wartezeiten von 6 und 12 Sekunden abgerufen und bei
+  Fehlschlag nur 5 Minuten zwischengespeichert. Schlägt sie fehl, bleiben die
+  übrigen Ortsauswertungen nutzbar, und die Karte bietet einen neuen Versuch an.
 
 ## Datenverarbeitung im Detail
 

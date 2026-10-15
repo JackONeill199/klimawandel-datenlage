@@ -535,6 +535,22 @@ p {
   min-height: 120px;
 }
 
+/* Platzhalter für bedarfsgesteuerte Inhalte (z. B. Modellprojektion). */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 0 6px;
+}
+
+.placeholder p {
+  margin: 0;
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .chart-host--short .chart-svg {
   max-height: 260px;
 }
@@ -589,6 +605,12 @@ p {
   font-family: var(--mono);
   font-size: 10.5px;
   fill: var(--muted);
+}
+
+/* Hinterlegung für Beschriftungen im Diagrammfeld, damit sie über Kurven lesbar bleiben. */
+.chart-halo {
+  fill: #0b0e12;
+  opacity: 0.82;
 }
 
 .chart-overlay {
